@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>福利委員會特約店家</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", sans-serif; background: #f4f4f4; }
+
+  .hero { background: #1a1a2e; padding: 28px 20px 20px; }
+  .hero h1 { color: #fff; font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .hero p  { color: rgba(255,255,255,0.55); font-size: 13px; margin-bottom: 16px; }
+
+  .search-wrap { display: flex; gap: 8px; }
+  .search-box { flex: 1; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 10px; padding: 10px 14px; }
+  .search-box input { background: transparent; border: none; outline: none; color: #fff; font-size: 14px; flex: 1; font-family: inherit; }
+  .search-box input::placeholder { color: rgba(255,255,255,0.4); }
+  .search-box svg { flex-shrink: 0; }
+  .search-btn { background: #1D9E75; border: none; border-radius: 10px; padding: 10px 16px; color: #fff; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; }
+
+  .cats { display: flex; gap: 8px; padding: 14px 16px 4px; overflow-x: auto; scrollbar-width: none; }
+  .cats::-webkit-scrollbar { display: none; }
+  .cat { padding: 5px 14px; border-radius: 20px; font-size: 12px; border: 1px solid #ddd; white-space: nowrap; cursor: pointer; background: #fff; color: #555; transition: all .15s; }
+  .cat.active { background: #1D9E75; border-color: #1D9E75; color: #fff; }
+
+  .list { padding: 10px 16px 80px; display: flex; flex-direction: column; gap: 10px; }
+
+  .card { background: #fff; border-radius: 14px; padding: 14px 16px; border: 1px solid #eee; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .card-name { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 5px; }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge { font-size: 11px; padding: 2px 9px; border-radius: 10px; font-weight: 500; }
+  .badge-cat { background: #E1F5EE; color: #085041; }
+  .badge-area { background: #f0f0f0; color: #555; }
+  .map-btn { display: flex; align-items: center; gap: 4px; background: #E1F5EE; color: #085041; font-size: 11px; padding: 6px 11px; border-radius: 8px; text-decoration: none; white-space: nowrap; flex-shrink: 0; font-weight: 500; }
+  .map-btn svg { flex-shrink: 0; }
+  .deal { background: #f8f8f8; border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #444; line-height: 1.6; }
+  .deal-label { color: #1D9E75; font-weight: 600; margin-right: 4px; }
+
+  .empty { text-align: center; padding: 48px 20px; color: #aaa; font-size: 14px; }
+  .loading { text-align: center; padding: 48px 20px; color: #aaa; font-size: 14px; }
+
+  .count-bar { padding: 10px 16px 0; font-size: 12px; color: #888; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>特約店家查詢</h1>
+  <p>持員工證即享專屬優惠</p>
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg width="14" height="14" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="searchInput" placeholder="搜尋店名、地區或優惠內容…" oninput="filterStores()">
+    </div>
+    <button class="search-btn" onclick="filterStores()">搜尋</button>
+  </div>
+</div>
+
+<div class="cats" id="catBar"></div>
+<div class="count-bar" id="countBar"></div>
+<div class="list" id="storeList"><div class="loading">載入中…</div></div>
+
+<script>
+// ======================================================
+// 請把下面這行換成你的 Apps Script 網址
+// ======================================================
+var API_URL = "https://script.google.com/macros/s/AKfycbzQA0k_18cW2VQ21oBKaNj4KZkVlqHSLr538MgdFyLOqnH8mt38ra7oOLz8w4ARI8Xj/exec";
+// ======================================================
+
+var allStores = [];
+var activeCat = "全部";
+
+async function loadStores() {
+  try {
+    var res = await fetch(API_URL);
+    var data = await res.json();
+    allStores = data.filter(function(r) { return r["店家名稱"] || r["店名"]; });
+    buildCats();
+    renderStores(allStores);
+  } catch(e) {
+    document.getElementById("storeList").innerHTML = '<div class="empty">資料載入失敗，請確認網址設定正確</div>';
+  }
+}
+
+function buildCats() {
+  var cats = ["全部"];
+  allStores.forEach(function(s) {
+    var c = s["類別"] || "";
+    if (c && cats.indexOf(c) === -1) cats.push(c);
+  });
+  var bar = document.getElementById("catBar");
+  bar.innerHTML = cats.map(function(c) {
+    return '<div class="cat' + (c === "全部" ? " active" : "") + '" onclick="setCat(\'' + c + '\')">' + c + '</div>';
+  }).join("");
+}
+
+function setCat(cat) {
+  activeCat = cat;
+  document.querySelectorAll(".cat").forEach(function(el) {
+    el.classList.toggle("active", el.textContent === cat);
+  });
+  filterStores();
+}
+
+function filterStores() {
+  var q = document.getElementById("searchInput").value.trim().toLowerCase();
+  var filtered = allStores.filter(function(s) {
+    var matchCat = activeCat === "全部" || (s["類別"] || "") === activeCat;
+    var matchQ = !q ||
+      (s["店家名稱"] || s["店名"] || "").toLowerCase().includes(q) ||
+      (s["優惠內容"] || "").toLowerCase().includes(q) ||
+      (s["地區"] || "").toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  renderStores(filtered);
+}
+
+function renderStores(list) {
+  document.getElementById("countBar").textContent = "共 " + list.length + " 家";
+  if (list.length === 0) {
+    document.getElementById("storeList").innerHTML = '<div class="empty">找不到符合的店家，試試其他關鍵字</div>';
+    return;
+  }
+  document.getElementById("storeList").innerHTML = list.map(function(s) {
+    var name = s["店家名稱"] || s["店名"] || "";
+    var cat  = s["類別"] || "";
+    var area = s["地區"] || "";
+    var deal = s["優惠內容"] || "";
+    var map  = s["地圖連結"] || "#";
+    return '<div class="card">' +
+      '<div class="card-top">' +
+        '<div>' +
+          '<div class="card-name">' + esc(name) + '</div>' +
+          '<div class="badges">' +
+            (cat  ? '<span class="badge badge-cat">'  + esc(cat)  + '</span>' : '') +
+            (area ? '<span class="badge badge-area">' + esc(area) + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        (map !== "#" ? '<a class="map-btn" href="' + esc(map) + '" target="_blank">' +
+          '<svg width="12" height="12" fill="none" stroke="#085041" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>導航</a>' : '') +
+      '</div>' +
+      '<div class="deal"><span class="deal-label">優惠：</span>' + esc(deal) + '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+loadStores();
+</script>
+</body>
+</html>
