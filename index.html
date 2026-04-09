@@ -127,8 +127,9 @@ function renderStores(list) {
     var name = s["店家名稱"] || s["店名"] || "";
     var cat  = s["類別"] || "";
     var area = s["地區"] || "";
-    var deal = s["優惠內容"] || "";
-    var map  = s["地圖連結"] || "#";
+    var deal     = s["優惠內容"] || "";
+    var map      = s["地圖連結"] || "";
+    var contract = s["合約連結"] || "";
     return '<div class="card">' +
       '<div class="card-top">' +
         '<div>' +
@@ -138,8 +139,12 @@ function renderStores(list) {
             (area ? '<span class="badge badge-area">' + esc(area) + '</span>' : '') +
           '</div>' +
         '</div>' +
-        (map !== "#" ? '<a class="map-btn" href="' + esc(map) + '" target="_blank">' +
-          '<svg width="12" height="12" fill="none" stroke="#085041" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>導航</a>' : '') +
+        '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">' +
+          (map ? '<a class="map-btn" href="' + esc(map) + '" target="_blank">' +
+            '<svg width="12" height="12" fill="none" stroke="#085041" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>導航</a>' : '') +
+          (contract ? '<a class="map-btn" href="' + esc(contract) + '" target="_blank" style="background:#E6F1FB;color:#0C447C;">' +
+            '<svg width="12" height="12" fill="none" stroke="#0C447C" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>合約</a>' : '') +
+        '</div>' +
       '</div>' +
       '<div class="deal"><span class="deal-label">優惠：</span>' + esc(deal) + '</div>' +
     '</div>';
