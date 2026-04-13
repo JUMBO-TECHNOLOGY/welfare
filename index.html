@@ -41,8 +41,21 @@
   .deal { background: #f8f8f8; border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #444; line-height: 1.6; }
   .deal-label { color: #1D9E75; font-weight: 600; margin-right: 4px; }
 
-  .empty   { text-align: center; padding: 48px 20px; color: #aaa; font-size: 14px; }
-  .loading { text-align: center; padding: 48px 20px; color: #aaa; font-size: 14px; }
+  .empty { text-align: center; padding: 48px 20px; color: #aaa; font-size: 14px; }
+  .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 16px; }
+  .loading-icon { width: 56px; height: 56px; border-radius: 16px; background: #1a1a2e; display: flex; align-items: center; justify-content: center; }
+  .loading-icon svg { animation: spin 1.2s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-title { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+  .loading-sub { font-size: 12px; color: #aaa; margin-top: -8px; }
+  .progress-wrap { width: 200px; height: 6px; background: #eee; border-radius: 10px; overflow: hidden; }
+  .progress-bar { height: 100%; background: #1D9E75; border-radius: 10px; animation: progress 4.5s ease-out forwards; }
+  @keyframes progress { 0% { width: 0%; } 60% { width: 75%; } 90% { width: 90%; } 100% { width: 95%; } }
+  .loading-dots { display: flex; gap: 6px; }
+  .loading-dots span { width: 6px; height: 6px; border-radius: 50%; background: #1D9E75; animation: bounce 1.2s ease-in-out infinite; }
+  .loading-dots span:nth-child(2) { animation-delay: .2s; }
+  .loading-dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes bounce { 0%,80%,100% { transform: scale(0.6); opacity:.4; } 40% { transform: scale(1); opacity:1; } }
 </style>
 </head>
 <body>
@@ -61,7 +74,17 @@
 
 <div class="cats" id="catBar"></div>
 <div class="count-bar" id="countBar"></div>
-<div class="list" id="storeList"><div class="loading">載入中…</div></div>
+<div class="list" id="storeList">
+  <div class="loading-wrap">
+    <div class="loading-icon">
+      <svg width="28" height="28" fill="none" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+    </div>
+    <div class="loading-title">正在載入店家資料</div>
+    <div class="loading-sub">請稍候，資料來自雲端試算表</div>
+    <div class="progress-wrap"><div class="progress-bar"></div></div>
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+  </div>
+</div>
 
 <script>
 var API_URL = "https://script.google.com/macros/s/AKfycbw1jD92JkrY2UkHnFpewwTP9EYZDvo71970-KSZO0NLBRgmJrHLbEKioSbRiRAUiR8t/exec";
