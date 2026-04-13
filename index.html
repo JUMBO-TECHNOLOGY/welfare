@@ -87,7 +87,7 @@ async function loadStores() {
 function buildCats() {
   var cats = ["全部"];
   allStores.forEach(function(s) {
-    var c = s["類別"] || "";
+    var c = s["【類別】"] || s["類別"] || "";
     if (c && cats.indexOf(c) === -1) cats.push(c);
   });
   var bar = document.getElementById("catBar");
@@ -107,11 +107,11 @@ function setCat(cat) {
 function filterStores() {
   var q = document.getElementById("searchInput").value.trim().toLowerCase();
   var filtered = allStores.filter(function(s) {
-    var matchCat = activeCat === "全部" || (s["類別"] || "") === activeCat;
+    var matchCat = activeCat === "全部" || (s["【類別】"] || s["類別"] || "") === activeCat;
     var matchQ = !q ||
-      (s["店家名稱"] || s["店名"] || "").toLowerCase().includes(q) ||
-      (s["優惠內容"] || "").toLowerCase().includes(q) ||
-      (s["地區"] || "").toLowerCase().includes(q);
+      (s["【店家名稱】"] || s["店家名稱"] || s["店名"] || "").toLowerCase().includes(q) ||
+      (s["【優惠內容】"] || s["優惠內容"] || "").toLowerCase().includes(q) ||
+      (s["【地區】"] || s["地區"] || "").toLowerCase().includes(q);
     return matchCat && matchQ;
   });
   renderStores(filtered);
