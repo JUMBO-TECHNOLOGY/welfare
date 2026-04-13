@@ -24,6 +24,7 @@
   .cat { padding: 5px 14px; border-radius: 20px; font-size: 12px; border: 1px solid #ddd; white-space: nowrap; cursor: pointer; background: #fff; color: #555; transition: all .15s; }
   .cat.active { background: #1D9E75; border-color: #1D9E75; color: #fff; }
 
+  .count-bar { padding: 8px 16px 0; font-size: 12px; color: #888; }
   .list { padding: 10px 16px 80px; display: flex; flex-direction: column; gap: 10px; }
 
   .card { background: #fff; border-radius: 14px; padding: 14px 16px; border: 1px solid #eee; }
@@ -31,17 +32,17 @@
   .card-name { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 5px; }
   .badges { display: flex; gap: 6px; flex-wrap: wrap; }
   .badge { font-size: 11px; padding: 2px 9px; border-radius: 10px; font-weight: 500; }
-  .badge-cat { background: #E1F5EE; color: #085041; }
+  .badge-cat  { background: #E1F5EE; color: #085041; }
   .badge-area { background: #f0f0f0; color: #555; }
-  .map-btn { display: flex; align-items: center; gap: 4px; background: #E1F5EE; color: #085041; font-size: 11px; padding: 6px 11px; border-radius: 8px; text-decoration: none; white-space: nowrap; flex-shrink: 0; font-weight: 500; }
-  .map-btn svg { flex-shrink: 0; }
+  .btns { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .btn-link { display: flex; align-items: center; gap: 4px; font-size: 11px; padding: 6px 10px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-weight: 500; }
+  .btn-map      { background: #E1F5EE; color: #085041; }
+  .btn-contract { background: #E6F1FB; color: #0C447C; }
   .deal { background: #f8f8f8; border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #444; line-height: 1.6; }
   .deal-label { color: #1D9E75; font-weight: 600; margin-right: 4px; }
 
-  .empty { text-align: center; padding: 48px 20px; color: #aaa; font-size: 14px; }
+  .empty   { text-align: center; padding: 48px 20px; color: #aaa; font-size: 14px; }
   .loading { text-align: center; padding: 48px 20px; color: #aaa; font-size: 14px; }
-
-  .count-bar { padding: 10px 16px 0; font-size: 12px; color: #888; }
 </style>
 </head>
 <body>
@@ -63,35 +64,39 @@
 <div class="list" id="storeList"><div class="loading">載入中…</div></div>
 
 <script>
-// ======================================================
-// 請把下面這行換成你的 Apps Script 網址
-// ======================================================
-var API_URL = "https://script.google.com/macros/s/AKfycbyEdmKOZsFDmMVUhYLonQUxIt5ZAcCCtdQeERdJbW94-JaJVrH1FcYKMh9Qhjsj29mr/exec";
-// ======================================================
+var API_URL = "https://script.google.com/macros/s/AKfycbw1jD92JkrY2UkHnFpewwTP9EYZDvo71970-KSZO0NLBRgmJrHLbEKioSbRiRAUiR8t/exec";
 
 var allStores = [];
 var activeCat = "全部";
+
+function g(row, keys) {
+  for (var i = 0; i < keys.length; i++) {
+    if (row[keys[i]] !== undefined && row[keys[i]] !== "") return String(row[keys[i]]);
+  }
+  return "";
+}
 
 async function loadStores() {
   try {
     var res = await fetch(API_URL);
     var data = await res.json();
-    allStores = data.filter(function(r) { return r["店家名稱"] || r["店名"]; });
+    allStores = data.filter(function(r) {
+      return g(r, ["店家名稱"]);
+    });
     buildCats();
     renderStores(allStores);
   } catch(e) {
-    document.getElementById("storeList").innerHTML = '<div class="empty">資料載入失敗，請確認網址設定正確</div>';
+    document.getElementById("storeList").innerHTML = '<div class="empty">資料載入失敗，請稍後再試</div>';
   }
 }
 
 function buildCats() {
   var cats = ["全部"];
   allStores.forEach(function(s) {
-    var c = s["【類別】"] || s["類別"] || "";
+    var c = g(s, ["類別"]);
     if (c && cats.indexOf(c) === -1) cats.push(c);
   });
-  var bar = document.getElementById("catBar");
-  bar.innerHTML = cats.map(function(c) {
+  document.getElementById("catBar").innerHTML = cats.map(function(c) {
     return '<div class="cat' + (c === "全部" ? " active" : "") + '" onclick="setCat(\'' + c + '\')">' + c + '</div>';
   }).join("");
 }
@@ -107,11 +112,12 @@ function setCat(cat) {
 function filterStores() {
   var q = document.getElementById("searchInput").value.trim().toLowerCase();
   var filtered = allStores.filter(function(s) {
-    var matchCat = activeCat === "全部" || (s["【類別】"] || s["類別"] || "") === activeCat;
-    var matchQ = !q ||
-      (s["【店家名稱】"] || s["店家名稱"] || s["店名"] || "").toLowerCase().includes(q) ||
-      (s["【優惠內容】"] || s["優惠內容"] || "").toLowerCase().includes(q) ||
-      (s["【地區】"] || s["地區"] || "").toLowerCase().includes(q);
+    var cat      = g(s, ["類別"]);
+    var name     = g(s, ["店家名稱"]);
+    var deal     = g(s, ["優惠內容"]);
+    var area     = g(s, ["地區"]);
+    var matchCat = activeCat === "全部" || cat === activeCat;
+    var matchQ   = !q || name.toLowerCase().includes(q) || deal.toLowerCase().includes(q) || area.toLowerCase().includes(q);
     return matchCat && matchQ;
   });
   renderStores(filtered);
@@ -119,17 +125,17 @@ function filterStores() {
 
 function renderStores(list) {
   document.getElementById("countBar").textContent = "共 " + list.length + " 家";
-  if (list.length === 0) {
+  if (!list.length) {
     document.getElementById("storeList").innerHTML = '<div class="empty">找不到符合的店家，試試其他關鍵字</div>';
     return;
   }
   document.getElementById("storeList").innerHTML = list.map(function(s) {
-    var name = s["店家名稱"] || s["店名"] || "";
-    var cat  = s["類別"] || "";
-    var area = s["地區"] || "";
-    var deal     = s["優惠內容"] || "";
-    var map      = s["地圖連結"] || "";
-    var contract = s["合約連結"] || "";
+    var name     = g(s, ["店家名稱"]);
+    var cat      = g(s, ["類別"]);
+    var area     = g(s, ["地區"]);
+    var deal     = g(s, ["優惠內容"]);
+    var map      = g(s, ["地圖連結"]);
+    var contract = g(s, ["合約連結"]);
     return '<div class="card">' +
       '<div class="card-top">' +
         '<div>' +
@@ -139,11 +145,9 @@ function renderStores(list) {
             (area ? '<span class="badge badge-area">' + esc(area) + '</span>' : '') +
           '</div>' +
         '</div>' +
-        '<div style="display:flex;flex-direction:row;gap:6px;align-items:center">' +
-          (map ? '<a class="map-btn" href="' + esc(map) + '" target="_blank">' +
-            '<svg width="12" height="12" fill="none" stroke="#085041" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>導航</a>' : '') +
-          (contract ? '<a class="map-btn" href="' + esc(contract) + '" target="_blank" style="background:#E6F1FB;color:#0C447C;">' +
-            '<svg width="12" height="12" fill="none" stroke="#0C447C" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>合約</a>' : '') +
+        '<div class="btns">' +
+          (map      ? '<a class="btn-link btn-map"      href="' + esc(map)      + '" target="_blank"><svg width="12" height="12" fill="none" stroke="#085041" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>導航</a>' : '') +
+          (contract ? '<a class="btn-link btn-contract" href="' + esc(contract) + '" target="_blank"><svg width="12" height="12" fill="none" stroke="#0C447C" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>合約</a>' : '') +
         '</div>' +
       '</div>' +
       '<div class="deal"><span class="deal-label">優惠：</span>' + esc(deal) + '</div>' +
@@ -151,8 +155,8 @@ function renderStores(list) {
   }).join("");
 }
 
-function esc(str) {
-  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
 loadStores();
