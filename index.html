@@ -11,7 +11,6 @@
   .hero { background: #1a1a2e; padding: 28px 20px 20px; }
   .hero h1 { color: #fff; font-size: 22px; font-weight: 600; margin-bottom: 4px; }
   .hero p  { color: rgba(255,255,255,0.55); font-size: 13px; margin-bottom: 16px; }
-
   .search-wrap { display: flex; gap: 8px; }
   .search-box { flex: 1; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 10px; padding: 10px 14px; }
   .search-box input { background: transparent; border: none; outline: none; color: #fff; font-size: 14px; flex: 1; font-family: inherit; }
@@ -19,10 +18,13 @@
   .search-box svg { flex-shrink: 0; }
   .search-btn { background: #1D9E75; border: none; border-radius: 10px; padding: 10px 16px; color: #fff; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; }
 
-  .cats { display: flex; gap: 8px; padding: 14px 16px 4px; overflow-x: auto; scrollbar-width: none; }
+  .filter-section { background: #fff; border-bottom: 1px solid #eee; }
+  .filter-label { font-size: 11px; color: #aaa; padding: 10px 16px 2px; font-weight: 500; }
+  .cats { display: flex; gap: 8px; padding: 4px 16px 10px; overflow-x: auto; scrollbar-width: none; }
   .cats::-webkit-scrollbar { display: none; }
-  .cat { padding: 5px 14px; border-radius: 20px; font-size: 12px; border: 1px solid #ddd; white-space: nowrap; cursor: pointer; background: #fff; color: #555; transition: all .15s; }
+  .cat { padding: 5px 14px; border-radius: 20px; font-size: 12px; border: 1px solid #ddd; white-space: nowrap; cursor: pointer; background: #fff; color: #555; transition: all .15s; flex-shrink: 0; }
   .cat.active { background: #1D9E75; border-color: #1D9E75; color: #fff; }
+  .cat.active-region { background: #1a1a2e; border-color: #1a1a2e; color: #fff; }
 
   .count-bar { padding: 8px 16px 0; font-size: 12px; color: #888; }
   .list { padding: 10px 16px 80px; display: flex; flex-direction: column; gap: 10px; }
@@ -32,8 +34,9 @@
   .card-name { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 5px; }
   .badges { display: flex; gap: 6px; flex-wrap: wrap; }
   .badge { font-size: 11px; padding: 2px 9px; border-radius: 10px; font-weight: 500; }
-  .badge-cat  { background: #E1F5EE; color: #085041; }
-  .badge-area { background: #f0f0f0; color: #555; }
+  .badge-cat    { background: #E1F5EE; color: #085041; }
+  .badge-area   { background: #f0f0f0; color: #555; }
+  .badge-region { background: #E6F1FB; color: #0C447C; }
   .btns { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
   .btn-link { display: flex; align-items: center; gap: 4px; font-size: 11px; padding: 6px 10px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-weight: 500; }
   .btn-map      { background: #E1F5EE; color: #085041; }
@@ -43,19 +46,15 @@
 
   .empty { text-align: center; padding: 48px 20px; color: #aaa; font-size: 14px; }
   .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 16px; }
-  .loading-icon { width: 56px; height: 56px; border-radius: 16px; background: #1a1a2e; display: flex; align-items: center; justify-content: center; }
-  .loading-icon svg { animation: spin 1.2s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
   .loading-title { font-size: 15px; font-weight: 600; color: #1a1a2e; }
-  .loading-sub { font-size: 12px; color: #aaa; margin-top: -8px; }
   .progress-wrap { width: 200px; height: 6px; background: #eee; border-radius: 10px; overflow: hidden; }
   .progress-bar { height: 100%; background: #1D9E75; border-radius: 10px; animation: progress 4.5s ease-out forwards; }
-  @keyframes progress { 0% { width: 0%; } 60% { width: 75%; } 90% { width: 90%; } 100% { width: 95%; } }
+  @keyframes progress { 0%{width:0%} 60%{width:75%} 90%{width:90%} 100%{width:95%} }
   .loading-dots { display: flex; gap: 6px; }
   .loading-dots span { width: 6px; height: 6px; border-radius: 50%; background: #1D9E75; animation: bounce 1.2s ease-in-out infinite; }
   .loading-dots span:nth-child(2) { animation-delay: .2s; }
   .loading-dots span:nth-child(3) { animation-delay: .4s; }
-  @keyframes bounce { 0%,80%,100% { transform: scale(0.6); opacity:.4; } 40% { transform: scale(1); opacity:1; } }
+  @keyframes bounce { 0%,80%,100%{transform:scale(0.6);opacity:.4} 40%{transform:scale(1);opacity:1} }
 </style>
 </head>
 <body>
@@ -72,7 +71,13 @@
   </div>
 </div>
 
-<div class="cats" id="catBar"></div>
+<div class="filter-section">
+  <div class="filter-label">類別</div>
+  <div class="cats" id="catBar"></div>
+  <div class="filter-label">區域</div>
+  <div class="cats" id="regionBar"></div>
+</div>
+
 <div class="count-bar" id="countBar"></div>
 <div class="list" id="storeList">
   <div class="loading-wrap">
@@ -84,13 +89,13 @@
 
 <script>
 var API_URL = "https://script.google.com/macros/s/AKfycbw1jD92JkrY2UkHnFpewwTP9EYZDvo71970-KSZO0NLBRgmJrHLbEKioSbRiRAUiR8t/exec";
-
 var allStores = [];
 var activeCat = "全部";
+var activeRegion = "全部";
 
 function g(row, keys) {
   for (var i = 0; i < keys.length; i++) {
-    if (row[keys[i]] !== undefined && row[keys[i]] !== "") return String(row[keys[i]]);
+    if (row[keys[i]] !== undefined && String(row[keys[i]]).trim() !== "") return String(row[keys[i]]).trim();
   }
   return "";
 }
@@ -99,10 +104,9 @@ async function loadStores() {
   try {
     var res = await fetch(API_URL);
     var data = await res.json();
-    allStores = data.filter(function(r) {
-      return g(r, ["店家名稱"]);
-    });
+    allStores = data.filter(function(r) { return g(r, ["店家名稱"]); });
     buildCats();
+    buildRegions();
     renderStores(allStores);
   } catch(e) {
     document.getElementById("storeList").innerHTML = '<div class="empty">資料載入失敗，請稍後再試</div>';
@@ -120,10 +124,40 @@ function buildCats() {
   }).join("");
 }
 
+function buildRegions() {
+  var regions = ["全部"];
+  allStores.forEach(function(s) {
+    var r = g(s, ["區域"]);
+    if (!r) return;
+    r.split(/[,，.。、]/).forEach(function(part) {
+      part = part.trim();
+      if (part && regions.indexOf(part) === -1) regions.push(part);
+    });
+  });
+  var order = ["全部","北部","中部","南部","東部","全省","離島"];
+  regions.sort(function(a,b) {
+    var ia = order.indexOf(a), ib = order.indexOf(b);
+    if (ia === -1) ia = 99;
+    if (ib === -1) ib = 99;
+    return ia - ib;
+  });
+  document.getElementById("regionBar").innerHTML = regions.map(function(r) {
+    return '<div class="cat' + (r === "全部" ? " active-region" : "") + '" onclick="setRegion(\'' + r + '\')">' + r + '</div>';
+  }).join("");
+}
+
 function setCat(cat) {
   activeCat = cat;
-  document.querySelectorAll(".cat").forEach(function(el) {
+  document.querySelectorAll("#catBar .cat").forEach(function(el) {
     el.classList.toggle("active", el.textContent === cat);
+  });
+  filterStores();
+}
+
+function setRegion(region) {
+  activeRegion = region;
+  document.querySelectorAll("#regionBar .cat").forEach(function(el) {
+    el.classList.toggle("active-region", el.textContent === region);
   });
   filterStores();
 }
@@ -131,13 +165,15 @@ function setCat(cat) {
 function filterStores() {
   var q = document.getElementById("searchInput").value.trim().toLowerCase();
   var filtered = allStores.filter(function(s) {
-    var cat      = g(s, ["類別"]);
-    var name     = g(s, ["店家名稱"]);
-    var deal     = g(s, ["優惠內容"]);
-    var area     = g(s, ["地區"]);
+    var cat    = g(s, ["類別"]);
+    var region = g(s, ["區域"]);
+    var name   = g(s, ["店家名稱"]);
+    var deal   = g(s, ["優惠內容"]);
+    var area   = g(s, ["地區"]);
     var matchCat = activeCat === "全部" || cat === activeCat;
-    var matchQ   = !q || name.toLowerCase().includes(q) || deal.toLowerCase().includes(q) || area.toLowerCase().includes(q);
-    return matchCat && matchQ;
+    var matchRegion = activeRegion === "全部" || region.indexOf(activeRegion) !== -1;
+    var matchQ = !q || name.toLowerCase().includes(q) || deal.toLowerCase().includes(q) || area.toLowerCase().includes(q);
+    return matchCat && matchRegion && matchQ;
   });
   renderStores(filtered);
 }
@@ -151,6 +187,7 @@ function renderStores(list) {
   document.getElementById("storeList").innerHTML = list.map(function(s) {
     var name     = g(s, ["店家名稱"]);
     var cat      = g(s, ["類別"]);
+    var region   = g(s, ["區域"]);
     var area     = g(s, ["地區"]);
     var deal     = g(s, ["優惠內容"]);
     var map      = g(s, ["地圖連結"]);
@@ -160,8 +197,9 @@ function renderStores(list) {
         '<div>' +
           '<div class="card-name">' + esc(name) + '</div>' +
           '<div class="badges">' +
-            (cat  ? '<span class="badge badge-cat">'  + esc(cat)  + '</span>' : '') +
-            (area ? '<span class="badge badge-area">' + esc(area) + '</span>' : '') +
+            (cat    ? '<span class="badge badge-cat">'    + esc(cat)    + '</span>' : '') +
+            (area   ? '<span class="badge badge-area">'   + esc(area)   + '</span>' : '') +
+            (region ? '<span class="badge badge-region">' + esc(region) + '</span>' : '') +
           '</div>' +
         '</div>' +
         '<div class="btns">' +
