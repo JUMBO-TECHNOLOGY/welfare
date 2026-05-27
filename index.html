@@ -203,12 +203,8 @@ function renderStores(list) {
           '</div>' +
         '</div>' +
         '<div class="btns">' +
-         '<div class="btns">' +
-'<div class="btns">' +
-  (map      ? '<a class="btn-link btn-map"      href="' + esc(map)      + '" target="_blank">...導航</a>' : '') +
-  (contract ? '<a class="btn-link btn-contract" href="' + esc(contract) + '" target="_blank">...合約</a>' : '') +
-'</div>'
-'</div>'
+          (map      ? '<a class="btn-link btn-map"      href="' + esc(map)      + '" target="_blank"><svg width="12" height="12" fill="none" stroke="#085041" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>導航</a>' : '') +
+          (contract ? '<a class="btn-link btn-contract" href="' + esc(contract) + '" target="_blank"><svg width="12" height="12" fill="none" stroke="#0C447C" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>合約</a>' : '') +
         '</div>' +
       '</div>' +
       '<div class="deal"><span class="deal-label">優惠：</span>' + esc(deal) + '</div>' +
