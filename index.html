@@ -32,16 +32,13 @@
   .card { background: #fff; border-radius: 14px; padding: 14px 16px; border: 1px solid #eee; }
   .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
   .card-name { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 5px; }
-  .badges { display: flex; gap: 6px; flex-wrap: wrap; }
-  .badge { font-size: 11px; padding: 2px 9px; border-radius: 10px; font-weight: 500; }
-  .badge-cat  { background: #E1F5EE; color: #085041; }
-  .badge-area { background: #f0f0f0; color: #555; }
+  .meta-slash { font-size: 12px; color: #888; display: flex; align-items: center; gap: 5px; }
+  .slash { color: #ccc; font-size: 13px; }
   .btns { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
   .btn-link { display: flex; align-items: center; gap: 4px; font-size: 11px; padding: 6px 10px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-weight: 500; }
   .btn-web      { background: #FFF4E1; color: #7A4800; }
   .btn-contract { background: #E6F1FB; color: #0C447C; }
   .btn-map      { background: #E1F5EE; color: #085041; }
-
   .deal { background: #f8f8f8; border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #444; line-height: 1.6; }
   .deal-label { color: #1D9E75; font-weight: 600; margin-right: 4px; }
 
@@ -197,10 +194,11 @@ function renderStores(list) {
       '<div class="card-top">' +
         '<div>' +
           '<div class="card-name">' + esc(name) + '</div>' +
-          '<div class="badges">' +
-            (cat  ? '<span class="badge badge-cat">'  + esc(cat)  + '</span>' : '') +
-            (area ? '<span class="badge badge-area">' + esc(area) + '</span>' : '') +
-          '</div>' +
+          ((cat || area) ? '<div class="meta-slash">' +
+            (cat  ? '<span>' + esc(cat)  + '</span>' : '') +
+            (cat && area ? '<span class="slash">/</span>' : '') +
+            (area ? '<span>' + esc(area) + '</span>' : '') +
+          '</div>' : '') +
         '</div>' +
         '<div class="btns">' +
           (website  ? '<a class="btn-link btn-web"      href="' + esc(website)  + '" target="_blank"><svg width="12" height="12" fill="none" stroke="#7A4800" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>官網</a>' : '') +
